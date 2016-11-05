@@ -54,6 +54,10 @@ def load_dataset_for_classifier(classify_data_file_path):
 def generate_dataset_for_classifier(cueword_dict, filtered_file_path, classify_data_file_path):
     print_function_info("generate_dataset_for_classifier")
 
+    related_data_num = 0
+    many_parts_data_num = 0
+    no_postag_data_num = 0
+
     infile = open(filtered_file_path)
     outfile = open(classify_data_file_path, "w")
 
@@ -67,6 +71,7 @@ def generate_dataset_for_classifier(cueword_dict, filtered_file_path, classify_d
         split_info = infos[index_dict['splitinfo']]
 
         if split_info == "y" or split_info == "n":
+            related_data_num += 1
             text_info = dict()
 
             for field_name in index_dict:
@@ -74,10 +79,12 @@ def generate_dataset_for_classifier(cueword_dict, filtered_file_path, classify_d
 
             is_valid = modify_data_without_postag_tagging(text_info)
             if not is_valid:
+                no_postag_data_num += 1
                 continue
 
             # ignore choices with more than two split parts
             if len(text_info['text'].split("\t")[1].split(u"，")) > 2:
+                many_parts_data_num += 1
                 continue
 
             try:
@@ -113,16 +120,22 @@ def generate_dataset_for_classifier(cueword_dict, filtered_file_path, classify_d
     infile.close()
     outfile.close()
 
+    print "related data num:\t", related_data_num
+    print "no postag data num:\t", no_postag_data_num
+    print "many parts data num:\t", many_parts_data_num
+    print "available data num:\t", related_data_num - no_postag_data_num - many_parts_data_num
+
     return all_dataset
 
 
 def modify_data_without_postag_tagging(text_info):
     if text_info["posres"] == "":
         if text_info["auto_pos"] == "":
+            print text_info['source']
             return False
         else:
             text_info['posres'] = text_info['auto_pos']
-            return True
+    return True
 
 
 def write_file_title(outfile):
