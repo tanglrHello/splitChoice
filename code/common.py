@@ -41,7 +41,8 @@ csv_col_names = ['number',
 
 index_dict = {}
 for col_index, name in enumerate(csv_col_names):
-    index_dict[name] = col_index
+    index_dict[name] = col_index + 1
+index_dict['source'] = 0
 
 
 def print_function_info(func_name):

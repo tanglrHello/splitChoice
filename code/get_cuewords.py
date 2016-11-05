@@ -3,14 +3,14 @@ import os
 from common import *
 
 
-def get_cuewords(merged_data_path, cw_file_path):
+def get_cuewords(filtered_data_path, cw_file_path):
     print_function_info("get_cuewords")
     cueword_dict = {}
 
     if os.path.exists(cw_file_path):
         load_existing_cueword_file(cw_file_path, cueword_dict)
     else:
-        extract_cuewords_from_data(merged_data_path, cw_file_path, cueword_dict)
+        extract_cuewords_from_data(filtered_data_path, cw_file_path, cueword_dict)
 
     return cueword_dict
 
@@ -36,45 +36,39 @@ def load_existing_cueword_file(cw_file_path, cueword_dict):
     cw_file.close()
 
 
-def extract_cuewords_from_data(merged_data_path, cw_file_path, cueword_dict):
+def extract_cuewords_from_data(filtered_data_path, cw_file_path, cueword_dict):
     print_function_info("extract_cuewords_from_data")
 
-    infile = open(merged_data_path)
-
-    seg_index = 3
-
-    top_template_index = 18
-    top_cueword_index = 20
-    second_template_index = 21
-    second_cueword_index = 24
+    infile = open(filtered_data_path)
 
     infile.readline()
+
     for l in infile.readlines():
         l = l.decode("utf-8").strip().split(file_splitter)
 
-        seg = l[seg_index].split()
+        seg = l[index_dict['segres']].split()
 
-        top_cueword = l[top_cueword_index].split()
-        top_template = l[top_template_index]
-        second_cueword = l[second_cueword_index].split()
-        second_template = l[second_template_index]
+        top_cueword = l[index_dict['topTemplateCueword']].split()
+        top_template = l[index_dict['topTemplate']]
+        second_cueword = l[index_dict['secondTemplateCueword']].split()
+        second_template = l[index_dict['secondTemplate']]
 
         extract_template_cueword_pair(seg, top_cueword, top_template, cueword_dict)
         extract_template_cueword_pair(seg, second_cueword, second_template, cueword_dict)
 
     save_cueword(cueword_dict, cw_file_path)
-
     return cueword_dict
 
 
 def extract_template_cueword_pair(seg, cueword_list, template_content, cueword_dict):
-    for temlate_cueword in cueword_list:
-        temlate_cueword = temlate_cueword.split("_")
-        if len(temlate_cueword) > 2:
-            raise Exception(u"多余的_")
+    for template_cueword in cueword_list:
+        template_cueword = template_cueword.split("_")
+        if len(template_cueword) != 2:
+            print cueword_list, " ".join(seg)
+            raise Exception(u"错误格式的cueword")
 
-        template_index = temlate_cueword[0]
-        cueword_index = temlate_cueword[1]
+        template_index = template_cueword[0]
+        cueword_index = template_cueword[1]
 
         template_name = find_template_name(seg, template_index, template_content)
         curword_combination = get_cueword_combination(cueword_index, seg)
