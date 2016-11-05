@@ -95,21 +95,24 @@ class FeatureExtractor:
         first_part2_word_pos_in_sentence = first_xuanxiang_word_pos_in_setences + len(seg_parts[0])
         total_word_num = first_part2_word_pos_in_sentence + len(seg_parts[1])
 
-        # *(*%^&$^%$*%(^*&^%$%^&*^^$%#$%^&*()(*&^%$#@!@#$%^&*()!@#$%^&*()@#$%^&*()_@#$%^&*()
-        time_index_list = [int(index) for index in time_index_str.split()]
+        time_index_list = list()
+        for time_range in time_index_str.split():
+            if '-' in time_range:
+                time_range =  time_range.split("-")
+                if len(time_range) != 2:
+                    raise Exception("wrong time format")
+
+                begin_index = int(time_range[0])
+                end_index = int(time_range[1])
+
+                for i in range(begin_index, end_index+1):
+                    time_index_list.append(i)
+
         for time_index in time_index_list:
-            '''
-            print ti
-            print txSplitPos,part2StartPos
-            print part2StartPos,totalLen
-            print txSplitPos<=ti<part2StartPos
-            print part2StartPos<=ti<totalLen
-            '''
             if first_xuanxiang_word_pos_in_setences <= time_index < first_part2_word_pos_in_sentence:
                 part1_has_time = True
             elif first_part2_word_pos_in_sentence <= time_index < total_word_num:
                 part2_has_time = True
-
         return str(part1_has_time) + "/" + str(part2_has_time)
 
     def contain_cuewords(self, seg_parts, cueword_feature_type):

@@ -51,33 +51,30 @@ def load_dataset_for_classifier(classify_data_file_path):
     return all_dataset
 
 
-def generate_dataset_for_classifier(cueword_dict, merged_file_path, classify_data_file_path):
+def generate_dataset_for_classifier(cueword_dict, filtered_file_path, classify_data_file_path):
     print_function_info("generate_dataset_for_classifier")
 
-    infile = open(merged_file_path)
+    infile = open(filtered_file_path)
     outfile = open(classify_data_file_path, "w")
 
     all_dataset = {"y": [], "n": []}
 
-    # 写输出文件的标题
-    outfile.write(file_splitter.join(['source', 'oritext', 'seg', 'postag']))
-    for fvt in FEATURE_NAMES:
-        outfile.write(out_file_splitter + fvt)
-    outfile.write(out_file_splitter + "label\n")
-
-    # merged file has one more column for source compared with raw data file
-    index_offset = 1
+    write_file_title(outfile)
 
     for l in infile.readlines():
         infos = l.strip().decode("utf-8").split(file_splitter)
 
-        split_info = infos[index_dict['splitinfo'] + index_offset]
+        split_info = infos[index_dict['splitinfo']]
 
         if split_info == "y" or split_info == "n":
             text_info = dict()
-            text_info['source'] = infos[0]
+
             for field_name in index_dict:
-                text_info[field_name] = infos[index_dict[field_name] + index_offset]
+                text_info[field_name] = infos[index_dict[field_name]]
+
+            is_valid = modify_data_without_postag_tagging(text_info)
+            if not is_valid:
+                continue
 
             # ignore choices with more than two split parts
             if len(text_info['text'].split("\t")[1].split(u"，")) > 2:
@@ -88,7 +85,10 @@ def generate_dataset_for_classifier(cueword_dict, merged_file_path, classify_dat
                 feature_vec = feature_label_data[0]
                 data_label = feature_label_data[1]
             except Exception, e:
-                print e
+                try:
+                    print "error:", e.message.encode("utf-8")
+                except:
+                    print "error:", e.message
                 continue
 
             # outfile record more data than the returned all_dataset
@@ -114,6 +114,22 @@ def generate_dataset_for_classifier(cueword_dict, merged_file_path, classify_dat
     outfile.close()
 
     return all_dataset
+
+
+def modify_data_without_postag_tagging(text_info):
+    if text_info["posres"] == "":
+        if text_info["auto_pos"] == "":
+            return False
+        else:
+            text_info['posres'] = text_info['auto_pos']
+            return True
+
+
+def write_file_title(outfile):
+    outfile.write(file_splitter.join(['source', 'oritext', 'seg', 'postag']))
+    for fvt in FEATURE_NAMES:
+        outfile.write(out_file_splitter + fvt)
+    outfile.write(out_file_splitter + "label\n")
 
 
 def get_featured_data_for_classify(cueword_dict, test_info):
@@ -167,7 +183,8 @@ def get_featured_data_for_classify(cueword_dict, test_info):
     feature_vector['lastTwoWordsInTimian'] = fe.last_words_in_timian(timian_seg, 2)
     feature_vector['lastPostagInTimian'] = timian_postag[-1]
 
-    feature_vector['timeCombination'] = fe.time_in_each_part_comb(timian_seg, seg_parts, test_info['time'])
+    feature_vector['timeCombination'] = fe.time_in_each_part_comb(timian_seg, seg_parts, test_info['goldtimes'])
+
     feature_vector['containCuewordsComb'] = fe.contain_cuewords(seg_parts, "comb")
     feature_vector['containCuewordsMain'] = fe.contain_cuewords(seg_parts, "main")
 
