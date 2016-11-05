@@ -19,7 +19,7 @@ def merge_all_papers(ori_data_dir, merged_file_path):
             title_flag = True
 
         for line in infile.readlines():
-            outfile.write(f_name.decode("gbk").encode("utf-8").split(file_splitter)[0]+file_splitter+line)
+            outfile.write(f_name.split(file_splitter)[0]+file_splitter+line)
 
         infile.close()
 
