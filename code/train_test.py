@@ -19,7 +19,7 @@ def train_and_test(all_dataset, test_prop, foldnum, predict_result_file_path, te
 
         train_data = [single_data.data for single_data in train_set]
         test_data = [single_data.data for single_data in test_set]
-        test_text = [single_data.text for single_data in test_set]
+        test_text = [single_data.ori_text for single_data in test_set]
 
         encoding = maxent.TypedMaxentFeatureEncoding.train(train_data, count_cutoff=3, alwayson_features=True)
         classifier = maxent.MaxentClassifier.train(train_data, bernoulli=False, encoding=encoding, trace=0)
@@ -54,16 +54,16 @@ def save_predict_detail(predict_result_file, test_text, test_data, predict_resul
     # write data and predict result
     for text, (feature_vec, real_label), result in zip(test_text, test_data, predict_results):
         predict_result_file.write(str(fold_index) + out_file_splitter)
-        predict_result_file.write(text.encode('utf-8') + out_file_splitter)
-        predict_result_file.write(real_label.encode('utf-8') + out_file_splitter)
-        predict_result_file.write(result.encode('utf-8') + out_file_splitter)
+        predict_result_file.write(text.encode('gbk') + out_file_splitter)
+        predict_result_file.write(real_label.encode('gbk') + out_file_splitter)
+        predict_result_file.write(result.encode('gbk') + out_file_splitter)
         predict_result_file.write(str(real_label == result))
         for feature_name in FEATURE_NAMES:
             try:
-                predict_result_file.write(out_file_splitter + str(feature_vec[feature_name]).encode("utf-8"))
+                predict_result_file.write(out_file_splitter + str(feature_vec[feature_name]).encode("gbk"))
             except:
-                predict_result_file.write(out_file_splitter + str(feature_vec[feature_name].encode("utf-8")))
-                predict_result_file.write("\n")
+                predict_result_file.write(out_file_splitter + str(feature_vec[feature_name].encode("gbk")))
+        predict_result_file.write("\n")
 
 
 def calculate_performance(test_data, predict_results):

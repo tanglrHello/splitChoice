@@ -6,8 +6,10 @@ from train_test import train_and_test
 
 def main():
     data_path = "../data/"
-    ori_data_pathname = "11-5"  # you should make sure all data in it has been tagged split info
 
+    # you should make sure all data in it has been tagged split/time/template info (attention!!!)
+    # artificial postag tagging be empty is allowed, but then auto_pos is needed, or the data will be omitted
+    ori_data_pathname = "11-5"
 
     ori_data_dir = data_path + ori_data_pathname
     merged_file_path = data_path + "merged_" + ori_data_pathname + ".data"
@@ -25,13 +27,13 @@ def main():
                                              filtered_file_path,
                                              classify_data_file_path,
                                              force_generate_flag=True)
-    '''
+
     test_prop = 0.1
     foldnum = 10
     predict_result_file_path = data_path + "predict_result.csv"
     test_record_file_path = data_path + "train&test_res.txt"
     train_and_test(all_dataset, test_prop, foldnum, predict_result_file_path, test_record_file_path)
-    '''
+
 
 if __name__ == "__main__":
     main()
