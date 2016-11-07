@@ -9,8 +9,9 @@ def post_process(test_data, test_text, predict_result):
                            specific_last_word_in_first_part,
                            both_contain_lonlat]
         post_to_n_funcs2 = [specific_word_in_timian,
-                            specific_word_in_two_parts]
-        # post_process_funcs = [null_process]
+                            specific_word_in_two_parts,
+                            specific_word_in_first_part,
+                            specific_word_in_second_part,]
 
         feature_vec = data[0]
 
@@ -36,10 +37,6 @@ def post_process(test_data, test_text, predict_result):
     return post_predict_result
 
 
-def null_process(data):
-    pass
-
-
 def specific_last_word_in_first_part(data):
     word_list = [u"时"]
     for word in word_list:
@@ -51,13 +48,11 @@ def specific_first_word_in_second_part(data):
     word_list = [u"利于", u"甚至", u"则", u"因此", u"便于", u"表示", u"但是", u"但", u"使", u"导致"]
     for word in word_list:
         if data['firstWordInSecondPart'] == word:
-            print "specific_first_word"
             return "n"
 
 
 def both_contain_lonlat(data):
     if data['bothContainLonLat'] == True:
-        print "both_contiain"
         return "n"
 
 
@@ -68,6 +63,7 @@ def specific_word_in_timian(text):
         if word in timian:
             return "n"
 
+
 def specific_word_in_two_parts(text):
     word_list = [(u"越", u"越")]
 
@@ -77,4 +73,22 @@ def specific_word_in_two_parts(text):
 
     for word1, word2 in word_list:
         if word1 in part1 and word2 in part2:
+            return "n"
+
+
+def specific_word_in_first_part(text):
+    word_list = [u"因为", u"由于", "因"]
+    xuanxiang = text.split("\t")[1]
+    part1 = xuanxiang.split(u"，")[0]
+    for word in word_list:
+        if word in part1:
+            return "n"
+
+
+def specific_word_in_second_part(text):
+    word_list = [u"使", u"导致"]
+    xuanxiang = text.split("\t")[1]
+    part2 = xuanxiang.split(u"，")[1]
+    for word in word_list:
+        if word in part2:
             return "n"
