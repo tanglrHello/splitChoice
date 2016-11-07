@@ -1,5 +1,6 @@
 # coding=utf-8
 import os
+import random
 from common import *
 from feature_extractor import *
 
@@ -204,6 +205,7 @@ def get_featured_data_for_classify(cueword_dict, test_info):
     feature_vector['firstWordInSecondPart'] = seg_parts[1][0]
     feature_vector['firstPostagInSecondPart'] = postag_parts[1][0]
     feature_vector['lastWordInFirstPart'] = seg_parts[0][-1]
+    feature_vector['lastCharInFirstPart'] = seg_parts[0][-1][-1]
 
     feature_vector['bothContainLonLat'] = fe.both_contain_lonlat(seg_parts)
 
@@ -223,9 +225,40 @@ def get_dataset_for_boundary():
     pass
 
 
+def construct_y_prop_dataset(ori_dataset, y_prop):
+    print_function_info("construct_y_prop_dataset")
+    print "y_prop="+str(y_prop)
+    y_data = ori_dataset['y'][:]
+    n_data = ori_dataset['n'][:]
+
+    total_data_num = len(y_data) + len(n_data)
+
+    balanced_dataset = dict()
+    balanced_dataset['y'] = y_data
+    balanced_dataset['n'] = n_data
+
+    if len(y_data) / float(total_data_num) < y_prop:
+        total_target_size = len(n_data) / (1 - y_prop)
+        y_target_size = int(total_target_size - len(n_data))
+        enlarge_dataset(y_data, y_target_size)
+    else:
+        total_target_size = len(y_data) / y_prop
+        n_target_size = int(total_target_size - len(y_data))
+        enlarge_dataset(n_data, n_target_size)
+
+    return balanced_dataset
+
+
+def enlarge_dataset(ori_datas, target_size):
+    ori_size = len(ori_datas)
+    for i in range(target_size - ori_size):
+        selected_index = random.randint(0, ori_size-1)
+        ori_datas.append(ori_datas[selected_index])
+
+
 # test_prop将原始数据的多少拿出作为测试集，例如0.1表示将10%的数据作为测试集
 # 训练集和测试集中，n和y两种类型的数据比例一致
-def split_dataset(ori_dataset, test_prop, foldnum, fold_index):
+def split_dataset(ori_dataset, test_prop, foldnum, fold_index, y_prop_in_trainset=False):
     print_function_info("split_dataset")
 
     n_data = ori_dataset['n']
@@ -239,13 +272,31 @@ def split_dataset(ori_dataset, test_prop, foldnum, fold_index):
     first_test_pos_for_y = foldlen_y * (fold_index % foldnum)
     last_test_pos_for_y = foldlen_y * (fold_index % foldnum) + int(len(y_data) * test_prop)
 
-    train_set = n_data[:first_test_pos_for_n] + n_data[last_test_pos_for_n:] + \
-                y_data[:first_test_pos_for_y] + y_data[last_test_pos_for_y:]
-    test_set = n_data[first_test_pos_for_n:last_test_pos_for_n] + y_data[first_test_pos_for_y:last_test_pos_for_y]
+    train_set = dict()
+    train_set['n'] = n_data[:first_test_pos_for_n] + n_data[last_test_pos_for_n:]
+    train_set['y'] = y_data[:first_test_pos_for_y] + y_data[last_test_pos_for_y:]
 
-    print u"  所有y数据的个数:\t" + str(len(n_data))
-    print u"  所有n数据的个数:\t" + str(len(y_data))
-    print u"  训练集大小:\t" + str(len(train_set))
-    print u"  测试集大小:\t" + str(len(test_set))
+    test_set = dict()
+    test_set['n'] = n_data[first_test_pos_for_n:last_test_pos_for_n]
+    test_set['y'] = y_data[first_test_pos_for_y:last_test_pos_for_y]
 
-    return train_set, test_set
+    '''
+        print u"  所有y数据的个数:\t" + str(len(n_data))
+        print u"  所有n数据的个数:\t" + str(len(y_data))
+        print u"  训练集大小:\t" + str(len(train_set))
+        print u"  测试集大小:\t" + str(len(test_set))
+    '''
+
+    print_dataset_info("test_dataset", test_set)
+    if y_prop_in_trainset != False:
+        modified_train_set = construct_y_prop_dataset(train_set, y_prop_in_trainset)
+        print_dataset_info("balanced_train_dataset", modified_train_set)
+        return modified_train_set['y'] + modified_train_set['n'], test_set['y'] + test_set['n']
+    else:
+        print_dataset_info("train_dataset", train_set)
+        return train_set['y'] + train_set['n'], test_set['y'] + test_set['n']
+
+
+def print_dataset_info(dataset_name, dataset):
+    print "y in " + dataset_name + ":",len(dataset['y'])
+    print "n in " + dataset_name + ":", len(dataset['n'])
