@@ -85,6 +85,12 @@ class FeatureExtractor:
 
     @staticmethod
     def time_in_each_part_comb(tm_seg, seg_parts, time_index_str):
+        if u"关于中国不同时期城市化进程特点的正确叙述" in "".join(tm_seg):
+            print "/".join(tm_seg)
+            print "/".join(seg_parts[0])
+            print "/".join(seg_parts[1])
+            print time_index_str
+
         # 当前假设只有一个逗号
         if len(seg_parts) != 2:
             raise Exception(u"应该只有两个部分：" + str(seg_parts))
@@ -108,6 +114,12 @@ class FeatureExtractor:
 
                 for i in range(begin_index, end_index+1):
                     time_index_list.append(i)
+            else:
+                time_index_list.append(int(time_range))
+
+        if u"关于中国不同时期城市化进程特点的正确叙述" in "".join(tm_seg):
+            print first_xuanxiang_word_pos_in_setences, first_part2_word_pos_in_sentence, total_word_num
+            print time_index_list
 
         for time_index in time_index_list:
             if first_xuanxiang_word_pos_in_setences <= time_index < first_part2_word_pos_in_sentence:
