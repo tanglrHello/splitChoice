@@ -135,7 +135,7 @@ class PostProcessEffect:
         self.n_to_y_right = 0
         self.n_to_y_wrong = 0
 
-    def add_effects(test_data, predict_results, post_predict_results):
+    def add_effects(self, test_data, predict_results, post_predict_results):
         real_labels = [label for _, label in test_data]
         for real_label, predict_label, post_label in zip(real_labels, predict_results, post_predict_results):
             if predict_label != post_label:
