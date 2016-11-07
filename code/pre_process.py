@@ -61,7 +61,6 @@ def filter_split_data(merged_file_path, filtered_file_path):
     for line in infile.readlines():
         all_data_row_num += 1
         tag = line.split(file_splitter)[split_col_index]
-        print tag
 
         if tag != "None":
             outfile.write(line)
@@ -103,6 +102,5 @@ def filter_split_data(merged_file_path, filtered_file_path):
         print "含逗号但不需拆分的选项及其比例：\t", n_num, float(n_num) / total_ori_choice_num
         print "含逗号且需要拆分的选项及其比例：\t", y_num, float(y_num) / total_ori_choice_num
     if y_num != 0:
-        print y_num, ori_y_num, mod_y_num
         print "原始拆分(不需要补成分)的选项及其在拆分选项中的比例:\t", ori_y_num, float(ori_y_num) / y_num
         print "修改拆分(需要补充成分)的选项及其在拆分选项中的比例:\t", mod_y_num, float(mod_y_num) / y_num
