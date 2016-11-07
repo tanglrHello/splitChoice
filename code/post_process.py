@@ -77,7 +77,7 @@ def specific_word_in_two_parts(text):
 
 
 def specific_word_in_first_part(text):
-    word_list = [u"因为", u"由于", "因"]
+    word_list = [u"因为", u"由于", u"因"]
     xuanxiang = text.split("\t")[1]
     part1 = xuanxiang.split(u"，")[0]
     for word in word_list:
