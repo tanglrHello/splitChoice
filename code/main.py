@@ -24,7 +24,7 @@ def main():
     classify_data_file_path = data_path + "classify_data_" + ori_data_pathname + ".data"
     all_dataset = get_dataset_for_classifier(cueword_dict,
                                              filtered_file_path,
-                                              classify_data_file_path,
+                                             classify_data_file_path,
                                              force_generate_flag=True)
 
     test_prop = 0.1
@@ -32,7 +32,12 @@ def main():
     predict_result_file_path = data_path + "predict_result.csv"
     test_record_file_path = data_path + "train&test_res.txt"
     # train_and_test(balanced_dataset, test_prop, foldnum, predict_result_file_path, test_record_file_path)
-    train_and_test(all_dataset, test_prop, foldnum, predict_result_file_path, test_record_file_path, y_prop_in_trainset=0.2)
+    train_and_test(all_dataset,
+                   test_prop,
+                   foldnum,
+                   predict_result_file_path,
+                   test_record_file_path,
+                   y_prop_in_trainset=0.2)
 
 
 if __name__ == "__main__":

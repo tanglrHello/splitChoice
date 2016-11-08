@@ -6,7 +6,11 @@ from common import *
 from post_process import *
 
 
-def train_and_test(all_dataset, test_prop, foldnum, predict_result_file_path, test_record_file_path, y_prop_in_trainset=False):
+def train_and_test(all_dataset,
+                   test_prop, foldnum,
+                   predict_result_file_path, test_record_file_path,
+                   y_prop_in_trainset=False):
+
     print_function_info("train_and_test")
 
     predict_result_file = open(predict_result_file_path, "w")
@@ -22,8 +26,8 @@ def train_and_test(all_dataset, test_prop, foldnum, predict_result_file_path, te
         print "foldnum:"+str(i)
         train_set, test_set = split_dataset(all_dataset, test_prop, foldnum, i, y_prop_in_trainset)
 
-        train_data = [single_data.data for single_data in train_set]
-        test_data = [single_data.data for single_data in test_set]
+        train_data = [single_data.data_for_train_test for single_data in train_set]
+        test_data = [single_data.data_for_train_test for single_data in test_set]
         test_text = [single_data.ori_text for single_data in test_set]
 
         encoding = maxent.TypedMaxentFeatureEncoding.train(train_data, count_cutoff=3, alwayson_features=True)
@@ -31,7 +35,7 @@ def train_and_test(all_dataset, test_prop, foldnum, predict_result_file_path, te
         classifier.show_most_informative_features(10)
         predict_results = classifier.classify_many([feature_vec for feature_vec, label in test_data])
 
-        post_predict_results = post_process(test_data, test_text, predict_results)
+        post_predict_results = post_process(test_set, test_text, predict_results)
 
         post_process_effect.add_effects(test_data, predict_results, post_predict_results)
 

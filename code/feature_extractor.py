@@ -5,19 +5,19 @@ FEATURE_NAMES = ['wordNumDiff',  # 拆分成的两部分各自词数差的绝对
                  'postagEditDistance',  # 拆分成的两部分的词性序列的编辑距离
                  'lastPosComb',  # 拆分后两部分的最后一个词的词性组合
                  'lastPosEqual',  # 拆分后两部分的最后一个词的词性是否相同
-                 #'firstPosComb',  # 拆分后两部分的第一个词的词性组合
-                 #'firstPosEqual',  # 拆分后两部分的第一个词的词性是否相同
+                 # 'firstPosComb',  # 拆分后两部分的第一个词的词性组合
+                 # 'firstPosEqual',  # 拆分后两部分的第一个词的词性是否相同
                  'lastWordInTimian',  # 题面中的最后一个词
-                 #'lastTwoWordsInTimian',  # 题面中的最后两个词拼接起来（如果只有一个词，前一个词用NULL）
-                 #'lastPostagInTimian',  # 题面中的最后一个词的词性
+                 # 'lastTwoWordsInTimian',  # 题面中的最后两个词拼接起来（如果只有一个词，前一个词用NULL）
+                 # 'lastPostagInTimian',  # 题面中的最后一个词的词性
                  'timeCombination',  # 两个子句是否包含时间词的布尔值组合
                  'firstWordInSecondPart',  # 拆分后第二个部份的第一个词
                  # 'firstPostagInSecondPart',
                  # 'lastWordInFirstPart',
-                 'lastCharInFirstPart',  #第一部分的最后一个字
+                 'lastCharInFirstPart',  # 第一部分的最后一个字
                  # 'containCuewordsComb',
-                 #"containCuewordsMain",  # 是否包含主要线索词
-                 'bothContainLonLat'  # 拆分后两部分是否都包含经纬度
+                 # "containCuewordsMain",  # 是否包含主要线索词
+                 # 'bothContainLonLat'  # 拆分后两部分是否都包含经纬度
                  ]
 
 
@@ -85,12 +85,6 @@ class FeatureExtractor:
 
     @staticmethod
     def time_in_each_part_comb(tm_seg, seg_parts, time_index_str):
-        if u"关于中国不同时期城市化进程特点的正确叙述" in "".join(tm_seg):
-            print "/".join(tm_seg)
-            print "/".join(seg_parts[0])
-            print "/".join(seg_parts[1])
-            print time_index_str
-
         # 当前假设只有一个逗号
         if len(seg_parts) != 2:
             raise Exception(u"应该只有两个部分：" + str(seg_parts))
@@ -105,7 +99,7 @@ class FeatureExtractor:
         time_index_list = list()
         for time_range in time_index_str.split():
             if '-' in time_range:
-                time_range =  time_range.split("-")
+                time_range = time_range.split("-")
                 if len(time_range) != 2:
                     raise Exception("wrong time format")
 
@@ -116,10 +110,6 @@ class FeatureExtractor:
                     time_index_list.append(i)
             else:
                 time_index_list.append(int(time_range))
-
-        if u"关于中国不同时期城市化进程特点的正确叙述" in "".join(tm_seg):
-            print first_xuanxiang_word_pos_in_setences, first_part2_word_pos_in_sentence, total_word_num
-            print time_index_list
 
         for time_index in time_index_list:
             if first_xuanxiang_word_pos_in_setences <= time_index < first_part2_word_pos_in_sentence:

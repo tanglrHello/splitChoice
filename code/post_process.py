@@ -1,23 +1,24 @@
 # coding=utf-8
 
 
-def post_process(test_data, test_text, predict_result):
+def post_process(test_set, test_text, predict_result):
     post_predict_result = []
 
-    for data, text, result in zip(test_data, test_text, predict_result):
-        post_to_n_funcs1 = [specific_first_word_in_second_part,
-                           specific_last_word_in_first_part,
-                           both_contain_lonlat]
-        post_to_n_funcs2 = [specific_word_in_timian,
-                            specific_word_in_two_parts,
-                            specific_word_in_first_part,
-                            specific_word_in_second_part,]
+    # these funtions will use features in feature_vec of each data
+    post_to_n_funcs1 = [specific_first_word_in_second_part,
+                        specific_last_word_in_first_part,
+                        both_contain_lonlat]
 
-        feature_vec = data[0]
+    # these functions will only use the original text of that choice
+    post_to_n_funcs2 = [specific_word_in_timian,
+                        specific_word_in_two_parts,
+                        specific_word_in_first_part,
+                        specific_word_in_second_part]
 
+    for test_single_data, text, result in zip(test_set, test_text, predict_result):
         to_n_flag = False
         for func in post_to_n_funcs1:
-            if func(feature_vec) == "n":
+            if func(test_single_data.full_feature_vec) == "n":
                 post_predict_result.append("n")
                 to_n_flag = True
                 break
@@ -52,7 +53,7 @@ def specific_first_word_in_second_part(data):
 
 
 def both_contain_lonlat(data):
-    if data['bothContainLonLat'] == True:
+    if data['bothContainLonLat']:
         return "n"
 
 

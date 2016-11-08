@@ -6,8 +6,9 @@ from feature_extractor import *
 
 
 class SingleData:
-    def __init__(self, data, ori_text):
-        self.data = data
+    def __init__(self, full_feature_vec, filtered_feature_vec, label, ori_text):
+        self.data_for_train_test = (filtered_feature_vec, label)
+        self.full_feature_vec = full_feature_vec
         self.ori_text = ori_text
 
 
@@ -39,14 +40,16 @@ def load_dataset_for_classifier(classify_data_file_path):
     for line in classify_data_file.readlines():
         line = line.split(out_file_splitter)
 
-        feature_vector = {}
+        full_feature_vector = {}
         for index, feature_value in enumerate(line[feature_start_index_in_file:-1]):
-            feature_vector[titles[index + feature_start_index_in_file]] = feature_value
+            full_feature_vector[titles[index + feature_start_index_in_file]] = feature_value
 
         ori_text = line[text_index_in_file]
         data_label = line[label_index_in_file]
 
-        single_data = SingleData((feature_vector, data_label), ori_text)
+        filtered_feature_vector = filter_features(full_feature_vector)
+        single_data = SingleData(full_feature_vector, filtered_feature_vector, data_label, ori_text)
+
         all_dataset[data_label].append(single_data)
 
     return all_dataset
@@ -89,9 +92,7 @@ def generate_dataset_for_classifier(cueword_dict, filtered_file_path, classify_d
                 continue
 
             try:
-                feature_label_data = get_featured_data_for_classify(cueword_dict, text_info)
-                feature_vec = feature_label_data[0]
-                data_label = feature_label_data[1]
+                single_data = get_featured_data_for_classify(cueword_dict, text_info)
             except Exception, e:
                 try:
                     print "error:", e.message.encode("utf-8")
@@ -99,21 +100,23 @@ def generate_dataset_for_classifier(cueword_dict, filtered_file_path, classify_d
                     print "error:", e.message
                 continue
 
+            full_feature_vector = single_data.full_feature_vec
+            data_label = single_data.data_for_train_test[1]
+
             # outfile record more data than the returned all_dataset
             outfile.write(text_info['source'].encode("utf-8") + file_splitter)
             outfile.write(text_info['text'].encode("utf-8") + file_splitter)
             outfile.write(text_info['segres'].encode("utf-8") + file_splitter)
             outfile.write(text_info['posres'].encode("utf-8"))
 
-            for feature_name in FEATURE_NAMES:
+            for feature_name in full_feature_vector:
                 try:
-                    outfile.write(out_file_splitter + str(feature_vec[feature_name]).encode("utf-8"))
+                    outfile.write(out_file_splitter + str(full_feature_vector[feature_name]).encode("utf-8"))
                 except:
-                    outfile.write(out_file_splitter + str(feature_vec[feature_name].encode("utf-8")))
+                    outfile.write(out_file_splitter + str(full_feature_vector[feature_name].encode("utf-8")))
 
             outfile.write(file_splitter + data_label.encode("utf-8") + "\n")
 
-            single_data = SingleData(feature_label_data, text_info['text'])
             all_dataset[data_label].append(single_data)
         else:
             continue
@@ -146,15 +149,15 @@ def write_file_title(outfile):
     outfile.write(out_file_splitter + "label\n")
 
 
-def get_featured_data_for_classify(cueword_dict, test_info):
-    label = test_info['splitinfo']
+def get_featured_data_for_classify(cueword_dict, text_info):
+    label = text_info['splitinfo']
 
-    timian_xuanxiang = test_info['text'].split("\t")
+    timian_xuanxiang = text_info['text'].split("\t")
     timian_text = timian_xuanxiang[0]
     xuanxiang_text = timian_xuanxiang[1]
 
-    seg = test_info['segres'].split()
-    postag = test_info['posres'].split()
+    seg = text_info['segres'].split()
+    postag = text_info['posres'].split()
 
     for i in range(len(seg)):
         if "".join(seg[:i]) == timian_text:
@@ -197,7 +200,7 @@ def get_featured_data_for_classify(cueword_dict, test_info):
     feature_vector['lastTwoWordsInTimian'] = fe.last_words_in_timian(timian_seg, 2)
     feature_vector['lastPostagInTimian'] = timian_postag[-1]
 
-    feature_vector['timeCombination'] = fe.time_in_each_part_comb(timian_seg, seg_parts, test_info['goldtimes'])
+    feature_vector['timeCombination'] = fe.time_in_each_part_comb(timian_seg, seg_parts, text_info['goldtimes'])
 
     feature_vector['containCuewordsComb'] = fe.contain_cuewords(seg_parts, "comb")
     feature_vector['containCuewordsMain'] = fe.contain_cuewords(seg_parts, "main")
@@ -209,16 +212,19 @@ def get_featured_data_for_classify(cueword_dict, test_info):
 
     feature_vector['bothContainLonLat'] = fe.both_contain_lonlat(seg_parts)
 
-    deleted_features = []
-    for feature_name in feature_vector:
-        if feature_name not in FEATURE_NAMES:
-            deleted_features.append(feature_name)
+    filtered_feature_vector = filter_features(feature_vector)
+    data = SingleData(feature_vector, filtered_feature_vector, label, text_info['text'])
 
-    for feature_name in deleted_features:
-        del feature_vector[feature_name]
-
-    data = (feature_vector, label)
     return data
+
+
+def filter_features(full_feature_vec):
+    filtered_feature_vec = {}
+
+    for feature_name in FEATURE_NAMES:
+        filtered_feature_vec[feature_name] = full_feature_vec[feature_name]
+
+    return filtered_feature_vec
 
 
 def get_dataset_for_boundary():
@@ -288,7 +294,7 @@ def split_dataset(ori_dataset, test_prop, foldnum, fold_index, y_prop_in_trainse
     '''
 
     print_dataset_info("test_dataset", test_set)
-    if y_prop_in_trainset != False:
+    if y_prop_in_trainset:
         modified_train_set = construct_y_prop_dataset(train_set, y_prop_in_trainset)
         print_dataset_info("balanced_train_dataset", modified_train_set)
         return modified_train_set['y'] + modified_train_set['n'], test_set['y'] + test_set['n']
@@ -298,5 +304,5 @@ def split_dataset(ori_dataset, test_prop, foldnum, fold_index, y_prop_in_trainse
 
 
 def print_dataset_info(dataset_name, dataset):
-    print "y in " + dataset_name + ":",len(dataset['y'])
+    print "y in " + dataset_name + ":", len(dataset['y'])
     print "n in " + dataset_name + ":", len(dataset['n'])
