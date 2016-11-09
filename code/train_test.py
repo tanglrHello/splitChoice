@@ -168,7 +168,7 @@ class TrainAndTest:
         for func in self.post_processor.post_to_n_funcs2:
             settings_info += str(func)
         settings_info += "\n"
-        settings_info += "features:  " + FEATURE_NAMES + "\n"
+        settings_info += "features:  " + str(FEATURE_NAMES) + "\n"
 
         return settings_info
 
