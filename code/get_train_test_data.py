@@ -38,7 +38,7 @@ def load_dataset_for_classifier(classify_data_file_path):
     label_index_in_file = -1
 
     for line in classify_data_file.readlines():
-        line = line.split(out_file_splitter)
+        line = line.decode("gbk").split(out_file_splitter)
 
         full_feature_vector = {}
         for index, feature_value in enumerate(line[feature_start_index_in_file:-1]):
@@ -67,8 +67,7 @@ def generate_dataset_for_classifier(cueword_dict, filtered_file_path, classify_d
 
     all_dataset = {"y": [], "n": []}
 
-    write_file_title(outfile)
-
+    full_feature_list = []
     for l in infile.readlines():
         infos = l.strip().decode("utf-8").split(file_splitter)
 
@@ -95,27 +94,31 @@ def generate_dataset_for_classifier(cueword_dict, filtered_file_path, classify_d
                 single_data = get_featured_data_for_classify(cueword_dict, text_info)
             except Exception, e:
                 try:
-                    print "error:", e.message.encode("utf-8")
+                    print "error:", e.message.encode("gbk")
                 except:
                     print "error:", e.message
                 continue
 
             full_feature_vector = single_data.full_feature_vec
+            if not full_feature_list:
+                full_feature_list = full_feature_vector.keys()
+                write_file_title(outfile, full_feature_list)
+
             data_label = single_data.data_for_train_test[1]
 
             # outfile record more data than the returned all_dataset
-            outfile.write(text_info['source'].encode("utf-8") + file_splitter)
-            outfile.write(text_info['text'].encode("utf-8") + file_splitter)
-            outfile.write(text_info['segres'].encode("utf-8") + file_splitter)
-            outfile.write(text_info['posres'].encode("utf-8"))
+            outfile.write(text_info['source'].encode("gbk") + out_file_splitter)
+            outfile.write(text_info['text'].encode("gbk") + out_file_splitter)
+            outfile.write(text_info['segres'].encode("gbk") + out_file_splitter)
+            outfile.write(text_info['posres'].encode("gbk"))
 
-            for feature_name in full_feature_vector:
+            for feature_name in full_feature_list:
                 try:
-                    outfile.write(out_file_splitter + str(full_feature_vector[feature_name]).encode("utf-8"))
+                    outfile.write(out_file_splitter + str(full_feature_vector[feature_name]).encode("gbk"))
                 except:
-                    outfile.write(out_file_splitter + str(full_feature_vector[feature_name].encode("utf-8")))
+                    outfile.write(out_file_splitter + str(full_feature_vector[feature_name].encode("gbk")))
 
-            outfile.write(file_splitter + data_label.encode("utf-8") + "\n")
+            outfile.write(out_file_splitter + data_label.encode("gbk") + "\n")
 
             all_dataset[data_label].append(single_data)
         else:
@@ -142,9 +145,9 @@ def modify_data_without_postag_tagging(text_info):
     return True
 
 
-def write_file_title(outfile):
-    outfile.write(file_splitter.join(['source', 'oritext', 'seg', 'postag']))
-    for fvt in FEATURE_NAMES:
+def write_file_title(outfile, full_feature_list):
+    outfile.write(out_file_splitter.join(['source', 'oritext', 'seg', 'postag']))
+    for fvt in full_feature_list:
         outfile.write(out_file_splitter + fvt)
     outfile.write(out_file_splitter + "label\n")
 
