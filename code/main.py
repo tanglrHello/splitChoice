@@ -1,7 +1,7 @@
 from pre_process import *
 from get_cuewords import get_cuewords
 from get_train_test_data import get_dataset_for_classifier
-from train_test import train_and_test
+from train_test import TrainAndTest
 
 
 def main():
@@ -29,15 +29,13 @@ def main():
 
     test_prop = 0.1
     foldnum = 10
-    predict_result_file_path = data_path + "predict_result.csv"
-    test_record_file_path = data_path + "train&test_res.txt"
-    # train_and_test(balanced_dataset, test_prop, foldnum, predict_result_file_path, test_record_file_path)
-    train_and_test(all_dataset,
-                   test_prop,
-                   foldnum,
-                   predict_result_file_path,
-                   test_record_file_path,
-                   y_prop_in_trainset=0.2)
+    y_prop_in_trainset = False
+    predict_files_dir_path = data_path + "predict_result/"
+    record_file_path = data_path + "auto_records.txt"
+    my_classifier = TrainAndTest(all_dataset, test_prop, foldnum,
+                                 predict_files_dir_path, record_file_path,
+                                 y_prop_in_trainset)
+    my_classifier.train_and_test()
 
 
 if __name__ == "__main__":

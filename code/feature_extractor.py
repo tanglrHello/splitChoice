@@ -5,11 +5,11 @@ FEATURE_NAMES = ['wordNumDiff',  # 拆分成的两部分各自词数差的绝对
                  'postagEditDistance',  # 拆分成的两部分的词性序列的编辑距离
                  'lastPosComb',  # 拆分后两部分的最后一个词的词性组合
                  'lastPosEqual',  # 拆分后两部分的最后一个词的词性是否相同
-                 # 'firstPosComb',  # 拆分后两部分的第一个词的词性组合
-                 # 'firstPosEqual',  # 拆分后两部分的第一个词的词性是否相同
+                 'firstPosComb',  # 拆分后两部分的第一个词的词性组合
+                 'firstPosEqual',  # 拆分后两部分的第一个词的词性是否相同
                  'lastWordInTimian',  # 题面中的最后一个词
-                 # 'lastTwoWordsInTimian',  # 题面中的最后两个词拼接起来（如果只有一个词，前一个词用NULL）
-                 # 'lastPostagInTimian',  # 题面中的最后一个词的词性
+                 'lastTwoWordsInTimian',  # 题面中的最后两个词拼接起来（如果只有一个词，前一个词用NULL）
+                 'lastPostagInTimian',  # 题面中的最后一个词的词性
                  'timeCombination',  # 两个子句是否包含时间词的布尔值组合
                  'firstWordInSecondPart',  # 拆分后第二个部份的第一个词
                  # 'firstPostagInSecondPart',
