@@ -101,7 +101,7 @@ class PostProcessor:
 
     @staticmethod
     def specific_word_in_two_parts(text):
-        word_list = [(u"越", u"越")]
+        word_list = [(u"越", u"越"), (u"若", u"则")]
 
         xuanxiang = text.split("\t")[1].split(u"，")
         part1 = xuanxiang[0]

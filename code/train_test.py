@@ -8,6 +8,15 @@ from common import *
 from post_process import *
 
 
+class TestResult:
+    def __init__(self, yp, np, yr, nr, tp):
+        self.y_precision = yp
+        self.n_precision = np
+        self.y_recall = yr
+        self.n_recall = nr
+        self.total_precision = tp
+
+
 class TrainAndTest:
     def __init__(self, all_dataset, test_prop, foldnum,
                  predict_files_dir_path, record_file_path,
@@ -38,6 +47,20 @@ class TrainAndTest:
         self.y_recalls = []
         self.n_recalls = []
         self.total_precisions = []
+
+    def get_mean_results_records(self):
+        mean_y_precision = self.get_mean_value(self.y_precisions)
+        mean_n_precision = self.get_mean_value(self.n_precisions)
+        mean_y_recall = self.get_mean_value(self.y_recalls)
+        mean_n_recall = self.get_mean_value(self.n_recalls)
+        mean_total_precision = self.get_mean_value(self.total_precisions)
+
+        result = TestResult(mean_y_precision, mean_n_precision, mean_y_recall, mean_n_recall, mean_total_precision)
+        return result
+
+    @staticmethod
+    def get_mean_value(value_list):
+        return sum(value_list)/float(len(value_list))
 
     def train_and_test(self):
         print_function_info("train_and_test")
@@ -181,9 +204,8 @@ class TrainAndTest:
         performance_info += "total_precisions:" + self.get_mean_and_all_performance_string(self.total_precisions) + "\n"
         return performance_info
 
-    @staticmethod
-    def get_mean_and_all_performance_string(result_list):
-        mean_value = sum(result_list) / len(result_list)
+    def get_mean_and_all_performance_string(self, result_list):
+        mean_value = self.get_mean_value(result_list)
         res_str = "mean(" + str(mean_value) + "),"
         res_str += "all(" + "\t".join(["%.2f" % result for result in result_list]) + ")"
         return res_str
