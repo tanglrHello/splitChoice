@@ -1,7 +1,6 @@
 # coding=utf-8
 import time
 import os
-from nltk.classify import maxent
 from get_train_test_data import split_dataset
 from feature_extractor import FEATURE_NAMES
 from common import *
@@ -20,6 +19,7 @@ class TestResult:
 class TrainAndTest:
     def __init__(self, all_dataset, test_prop, foldnum,
                  predict_files_dir_path, record_file_path,
+                 concrete_classifier,
                  y_prop_in_trainset=False):
         self.all_dataset = all_dataset
         self.test_prop = test_prop
@@ -29,6 +29,8 @@ class TrainAndTest:
         self.predict_files_dir_path = predict_files_dir_path
         self.predict_res_file = None
         self.record_file_path = record_file_path
+
+        self.concrete_classifier = concrete_classifier
 
         self.y_precisions = []
         self.n_precisions = []
@@ -76,14 +78,13 @@ class TrainAndTest:
             test_data = [single_data.data_for_train_test for single_data in test_set]
             test_text = [single_data.ori_text for single_data in test_set]
 
-            encoding = maxent.TypedMaxentFeatureEncoding.train(train_data, count_cutoff=3, alwayson_features=True)
-            classifier = maxent.MaxentClassifier.train(train_data, bernoulli=False, encoding=encoding, trace=0)
-            classifier.show_most_informative_features(10)
-            predict_results = classifier.classify_many([feature_vec for feature_vec, label in test_data])
+            self.concrete_classifier.train(train_data)
+            predict_prob_results = self.concrete_classifier.batch_test_with_prob(test_data)
+            predict_results = [res[0] for res in predict_prob_results]
 
             post_predict_results = self.post_processor.post_process(test_set, test_text, predict_results)
 
-            self.save_predict_detail(test_text, test_data, predict_results, post_predict_results, i)
+            self.save_predict_detail(test_text, test_data, predict_prob_results, post_predict_results, i)
             self.record_and_show_performance(test_data, post_predict_results)
 
         self.predict_res_file.close()
@@ -98,22 +99,22 @@ class TrainAndTest:
 
         self.predict_res_file = open(self.predict_files_dir_path + self.train_test_id + ".csv", "w")
 
-    def save_predict_detail(self, test_text, test_data, predict_results, post_predict_results, fold_index):
+    def save_predict_detail(self, test_text, test_data, predict_prob_results, post_predict_results, fold_index):
         # write title
-        self.predict_res_file.write("foldIndex,oritext,real_label,predict_label,post_predict_results,isRight")
+        self.predict_res_file.write("foldIndex,oritext,real_label,predict_label,post_predict_results,y_prop")
         for feature_name in FEATURE_NAMES:
             self.predict_res_file.write(out_file_splitter + feature_name)
         self.predict_res_file.write("\n")
 
         # write data and predict result
-        for text, (feature_vec, real_label), result, post_result \
-                in zip(test_text, test_data, predict_results, post_predict_results):
+        for text, (feature_vec, real_label), (result, y_prob), post_result \
+                in zip(test_text, test_data, predict_prob_results, post_predict_results):
             self.predict_res_file.write(str(fold_index) + out_file_splitter)
             self.predict_res_file.write(text.encode('gbk') + out_file_splitter)
             self.predict_res_file.write(real_label.encode('gbk') + out_file_splitter)
             self.predict_res_file.write(result.encode('gbk') + out_file_splitter)
             self.predict_res_file.write(post_result.encode('gbk') + out_file_splitter)
-            self.predict_res_file.write(str(real_label == result))
+            self.predict_res_file.write(str(y_prob).encode('gbk'))
             for feature_name in FEATURE_NAMES:
                 try:
                     self.predict_res_file.write(out_file_splitter + str(feature_vec[feature_name]).encode("gbk"))
@@ -173,6 +174,7 @@ class TrainAndTest:
     def save_train_test_settings_and_performance(self):
         record_file = open(self.record_file_path, "a")
         record_file.write("train_test id:" + self.train_test_id + "\n")
+        record_file.write("algorithm:" + str(self.concrete_classifier))
         record_file.write(self.get_settings_info())
         record_file.write(self.get_performance_info())
         record_file.write(self.post_processor.get_post_process_info())

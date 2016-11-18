@@ -4,6 +4,7 @@ from get_train_test_data import get_dataset_for_classifier
 from train_test import TrainAndTest
 from feature_extractor import FEATURE_NAMES
 from draw_result import *
+from concrete_training_algorithoms import *
 
 
 def main():
@@ -23,39 +24,58 @@ def main():
     cueword_file_path = data_path + "cueword_"+ori_data_pathname + "_sim.txt"
     cueword_dict = get_cuewords(filtered_file_path, cueword_file_path)
 
-    for i in range(len(FEATURE_NAMES) - 1):
-        y_prop_in_trainset = False
+    y_prop_in_trainset = 0.4
 
-        results = []
-        y_props = []
+    '''
+    results = []
+    y_props = []
 
-        for _ in range(7):
-            classify_data_file_path = data_path + "classify_data_" + ori_data_pathname + ".csv"
-            all_dataset = get_dataset_for_classifier(cueword_dict,
-                                                     filtered_file_path,
-                                                     classify_data_file_path,
-                                                     force_generate_flag=True)
+    for _ in range(7):
+        classify_data_file_path = data_path + "classify_data_" + ori_data_pathname + ".csv"
+        all_dataset = get_dataset_for_classifier(cueword_dict,
+                                                 filtered_file_path,
+                                                 classify_data_file_path,
+                                                 force_generate_flag=True)
 
-            test_prop = 0.1
-            foldnum = 10
-            predict_files_dir_path = data_path + "predict_result/"
-            record_file_path = data_path + "auto_records.txt"
-            my_classifier = TrainAndTest(all_dataset, test_prop, foldnum,
-                                         predict_files_dir_path, record_file_path,
-                                         y_prop_in_trainset)
-            my_classifier.train_and_test()
+        test_prop = 0.1
+        foldnum = 10
+        predict_files_dir_path = data_path + "predict_result/"
+        record_file_path = data_path + "auto_records.txt"
+        my_classifier = TrainAndTest(all_dataset, test_prop, foldnum,
+                                     predict_files_dir_path, record_file_path,
+                                     y_prop_in_trainset)
+        my_classifier.train_and_test()
 
-            results.append(my_classifier.get_mean_results_records())
-            y_props.append(y_prop_in_trainset)
+        results.append(my_classifier.get_mean_results_records())
+        y_props.append(y_prop_in_trainset)
 
-            if not y_prop_in_trainset:
-                y_prop_in_trainset = 0.1
-            else:
-                y_prop_in_trainset += 0.1
+        if not y_prop_in_trainset:
+            y_prop_in_trainset = 0.1
+        else:
+            y_prop_in_trainset += 0.1
 
-        draw_result_for_features(results, y_props)
+    draw_result_for_features(results, y_props)
+    '''
 
-        del FEATURE_NAMES[-1]
+    classify_data_file_path = data_path + "classify_data_" + ori_data_pathname + ".csv"
+    all_dataset = get_dataset_for_classifier(cueword_dict,
+                                             filtered_file_path,
+                                             classify_data_file_path,
+                                             force_generate_flag=True)
+
+    test_prop = 0.1
+    foldnum = 10
+    predict_files_dir_path = data_path + "predict_result/"
+    record_file_path = data_path + "auto_records.txt"
+
+    maxent_concrete_classifier = MaxentClassifer()
+    adaboost_concrete_classifier = AdaboostClassifer(maxent_concrete_classifier, 10)
+
+    my_classifier = TrainAndTest(all_dataset, test_prop, foldnum,
+                                 predict_files_dir_path, record_file_path,
+                                 adaboost_concrete_classifier,
+                                 y_prop_in_trainset)
+    my_classifier.train_and_test()
 
 
 if __name__ == "__main__":
