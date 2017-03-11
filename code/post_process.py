@@ -12,7 +12,8 @@ class PostProcessor:
         self.post_to_n_funcs2 = [self.specific_word_in_timian,
                                  self.specific_word_in_two_parts,
                                  self.specific_word_in_first_part,
-                                 self.specific_word_in_second_part]
+                                 self.specific_word_in_second_part,
+                                 self.specific_words_in_first_part]
 
         self.y_to_n_right = 0
         self.y_to_n_wrong = 0
@@ -93,7 +94,7 @@ class PostProcessor:
 
     @staticmethod
     def specific_word_in_timian(text):
-        word_list = [u"分别", u"及"]
+        word_list = [u"分别", u"及",]
         timian = text.split("\t")[0]
         for word in word_list:
             if word in timian:
@@ -113,11 +114,23 @@ class PostProcessor:
 
     @staticmethod
     def specific_word_in_first_part(text):
-        word_list = [u"因为", u"由于", u"因"]
+        word_list = [u"因为", u"由于", u"因", u"借助"]
         xuanxiang = text.split("\t")[1]
         part1 = xuanxiang.split(u"，")[0]
         for word in word_list:
             if word in part1:
+                return "n"
+
+    @staticmethod
+    def specific_words_in_first_part(text):
+        words_list = [(u"受", u"影响"), (u"受", u"控制")]
+        xuanxiang = text.split("\t")[1]
+        part1 = xuanxiang.split(u"，")[0]
+        for words in words_list:
+            for word in words:
+                if word not in part1:
+                    break
+            else:
                 return "n"
 
     @staticmethod

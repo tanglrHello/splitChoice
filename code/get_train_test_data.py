@@ -16,13 +16,13 @@ class SingleData:
 # -不划分训练集测试集，所有样本均返回，返回的样本中没有样本的来源信息
 # -you should set force_generate_flag to False when you are not sure whether the existing classify_data_file is
 # corresponding to the cueword_dict you pass in
-def get_dataset_for_classifier(cueword_dict, merged_file_path, classify_data_file_path, force_generate_flag=False):
+def get_dataset_for_classifier(cueword_dict, filtered_file_path, classify_data_file_path, force_generate_flag=False):
     print_function_info("get_dataset_for_classifier")
 
     if os.path.exists(classify_data_file_path) and not force_generate_flag:
         return load_dataset_for_classifier(classify_data_file_path)
     else:
-        return generate_dataset_for_classifier(cueword_dict, merged_file_path, classify_data_file_path)
+        return generate_dataset_for_classifier_in_file(cueword_dict, filtered_file_path, classify_data_file_path)
 
 
 def load_dataset_for_classifier(classify_data_file_path):
@@ -55,8 +55,8 @@ def load_dataset_for_classifier(classify_data_file_path):
     return all_dataset
 
 
-def generate_dataset_for_classifier(cueword_dict, filtered_file_path, classify_data_file_path):
-    print_function_info("generate_dataset_for_classifier")
+def generate_dataset_for_classifier_in_file(cueword_dict, filtered_file_path, classify_data_file_path):
+    print_function_info("generate_dataset_for_classifier_in_file")
 
     related_data_num = 0
     many_parts_data_num = 0
@@ -167,6 +167,8 @@ def get_featured_data_for_classify(cueword_dict, text_info):
             xuanxiang_start_index = i
             break
     else:
+        print text_info['text']
+        print text_info['segres']
         raise Exception("invalid seg res: no space between timian and xuanxiang")
 
     timian_seg = seg[:xuanxiang_start_index]
@@ -230,8 +232,67 @@ def filter_features(full_feature_vec):
     return filtered_feature_vec
 
 
-def get_dataset_for_boundary():
-    pass
+def get_dataset_for_boundary(filtered_data_path, boundary_data_file_path):
+    infile = open(filtered_data_path)
+    outfile = open(boundary_data_file_path, "w")
+
+    outfile.write("boundary_data" + out_file_splitter)
+    outfile.write("split_type" + out_file_splitter + "\n")
+
+    ori_split_num = 0
+    mod_split_num = 0
+
+    # read out title
+    infile.readline()
+
+    single_choice_related = []
+    for line in infile.readlines():
+        infos = line.strip().decode("utf-8").split(file_splitter)
+        split_info = infos[index_dict['splitinfo']]
+        text_info = infos[index_dict['text']]
+
+        if split_info == 'y' or split_info == 'n':
+            if len(single_choice_related) > 2:
+                split_type, boundary_data = generate_data_for_boundary(single_choice_related)
+                outfile.write(boundary_data.encode("gbk") + out_file_splitter)
+                outfile.write(split_type + out_file_splitter + "\n")
+                single_choice_related = []
+
+                if split_type == 'ori':
+                    ori_split_num += 1
+                else:
+                    mod_split_num += 1
+
+        if split_info != "n" and split_info != "None":
+            single_choice_related.append(text_info)
+
+    outfile.close()
+
+
+# split boundary are not allowed to be in timian (only appear in original boundary or the first choice part)
+def generate_data_for_boundary(single_choice_related):
+    choice_info = single_choice_related[0].split("\t")
+    timian = choice_info[0]
+    xuanxiang = choice_info[1]
+    original_text = timian + xuanxiang
+
+    for index in range(1, len(original_text)):
+        common_part = original_text[:index]
+
+        part2 = xuanxiang.split(u"，")[1]
+        if common_part + part2 == single_choice_related[2].replace("\t", ""):
+            if common_part == timian:
+                split_type = "ori"
+            else:
+                split_type = "mod"
+
+            split_info_data = common_part + "/" + original_text[index:]
+            split_info_data_with_timian_xuanxiang_boundary = split_info_data[:len(timian)] + "@" + \
+                                                             split_info_data[len(timian):]
+
+            return split_type, split_info_data_with_timian_xuanxiang_boundary
+
+    raise Exception("no valid boundary can be found")
 
 
 def construct_y_prop_dataset(ori_dataset, y_prop):
@@ -260,7 +321,7 @@ def construct_y_prop_dataset(ori_dataset, y_prop):
 
 def enlarge_dataset(ori_datas, target_size):
     ori_size = len(ori_datas)
-    for i in range(target_size - ori_size):
+    for _ in range(target_size - ori_size):
         selected_index = random.randint(0, ori_size-1)
         ori_datas.append(ori_datas[selected_index])
 

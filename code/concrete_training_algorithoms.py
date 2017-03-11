@@ -2,6 +2,7 @@ from nltk.classify import maxent
 from abc import ABCMeta, abstractmethod
 import random
 import math
+from common import *
 
 
 class BaseClassifier:
@@ -38,6 +39,7 @@ class MaxentClassifer(BaseClassifier):
         self.classifier = None
 
     def train(self, train_dataset):
+        print_function_info("training start...")
         encoding = maxent.TypedMaxentFeatureEncoding.train(train_dataset, count_cutoff=3, alwayson_features=True)
         self.classifier = maxent.MaxentClassifier.train(train_dataset, bernoulli=False, encoding=encoding, trace=0)
         # self.classifier.show_most_informative_features(10)
@@ -72,6 +74,9 @@ class MaxentClassifer(BaseClassifier):
 
 
 class AdaboostClassifer(BaseClassifier):
+    """
+    reference: http://blog.csdn.net/haidao2009/article/details/7514787
+    """
     class WeightedClassifer:
         def __init__(self, classifier, weight):
             self.classifier = classifier
