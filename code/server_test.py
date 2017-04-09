@@ -2,12 +2,12 @@
 import requests
 
 def test():
-    segged_sentence = u"上海 比 北京\t去年 气温 高 ， 降水量 大 。"
-    pos = "NR V NR NT NN AV PU NN AV PU"
-    ner = "loc O loc time term O O term O O"
+    segged_sentence = u"英国 比 美国\t气温 高 ， 日较差 低 。"
+    pos = "NR VV NR NN AD PU NN AD PU"
+    ner = "loc o loc o o o o o o"
     parameter = {"segged_sentence": segged_sentence, "pos": pos, "ner": ner}
 
-    r = requests.post("http://localhost:8080/simple_split.html", data=parameter)
+    r = requests.post("http://172.28.61.247:8080/simple_split.html", data=parameter)
     print r.text
 
 

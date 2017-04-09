@@ -1,5 +1,5 @@
 # coding=utf-8
-import simplejson as son
+from collections import Counter
 from bottle import Bottle, route, run, request, response, get, post
 from main import files_init
 from get_train_test_data import SingleData, get_featured_data_for_classify
@@ -29,30 +29,58 @@ def testpost():
 def simple_split():
     data = request.forms
     segged_sentence = data.get("segged_sentence", None).decode("utf-8")
-    pos = data.get("pos", None)
-    ner = data.get("ner", None)
+    pos = data.get("pos", None).split()
+    ner = data.get("ner", None).split()
 
     assert ner and segged_sentence and pos
-    assert len(segged_sentence.split()) == len(pos.split()) == len(ner.split())
+    assert len(segged_sentence.split()) == len(pos) == len(ner)
 
-    text_info = {}
-    timian = segged_sentence.split("\t")[0].split()
-    xuanxiang = segged_sentence.split("\t")[1].split()
-    text_info['splitinfo'] = None
-    text_info['text'] = "".join(timian) + "\t" + "".join(xuanxiang)
-    text_info['segres'] = " ".join(timian + xuanxiang)
-    text_info['posres'] = pos
-    text_info['goldtimes'] = []
-    for i, tag in enumerate(ner.split()):
-        if tag == "time":
-            text_info['goldtimes'].append(str(i))
-    text_info['goldtimes'] = " ".join(text_info['goldtimes'])
+    timian = segged_sentence.split('\t')[0].split()
+    xuanxiang = segged_sentence.split('\t')[1].split()
+    all_words = segged_sentence.split()
 
-    global CUEWORD_DICT
-    single_data = get_featured_data_for_classify(CUEWORD_DICT, text_info)
+    assert u"，" in xuanxiang
 
-    return test(single_data)
+    # predict for each pair of comma split part
+    results = []
+    comma_pos = [] # store the position of commas
+    for index, word in enumerate(xuanxiang):
+        if word == u"，":
+            comma_pos.append(index + len(timian))
+    part_boundaries = [len(timian) - 1] + comma_pos + [len(all_words)]
 
+    if all_words[-1] == u"。":
+        del all_words[-1]
+        del ner[-1]
+        del pos[-1]
+
+    for i in range(len(part_boundaries) - 2):
+        for j in range(i + 1, len(part_boundaries) - 1):
+            tmp_xuanxiang = all_words[part_boundaries[i] + 1 : part_boundaries[i + 1]] + [u"，"]\
+                        + all_words[part_boundaries[j] + 1 : part_boundaries[j + 1]] + [u"。"]
+            tmp_pos = pos[:len(timian)] + pos[part_boundaries[i] + 1 : part_boundaries[i + 1]] + ["PU"]\
+                        + pos[part_boundaries[j] + 1 : part_boundaries[j + 1]] + ["PU"]
+            tmp_ner = ner[:len(timian)] + ner[part_boundaries[i] + 1 : part_boundaries[i + 1]] + ["O"]\
+                        + ner[part_boundaries[j] + 1 : part_boundaries[j + 1]] + ["O"]
+
+            text_info = dict()
+            text_info['splitinfo'] = None
+            text_info['text'] = "".join(timian) + "\t" + "".join(tmp_xuanxiang)
+            text_info['segres'] = " ".join(timian + xuanxiang)
+            text_info['posres'] = " ".join(tmp_pos)
+            text_info['goldtimes'] = []
+            for k, tag in enumerate(tmp_ner):
+                if tag == "time":
+                    text_info['goldtimes'].append(str(k))
+            text_info['goldtimes'] = " ".join(text_info['goldtimes'])
+
+            global CUEWORD_DICT
+            single_data = get_featured_data_for_classify(CUEWORD_DICT, text_info)
+            results.append(test(single_data))
+
+    # generate final prediction
+    statistic = Counter(results)
+    return statistic.most_common(1)[0][0]
 
 def train():
     global CUEWORD_DICT
