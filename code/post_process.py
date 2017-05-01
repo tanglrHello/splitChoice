@@ -180,6 +180,6 @@ class PostProcessor:
 
             if str(i) not in goldtimes:
                 break
-                
+
         if all_time:
             return "n"

@@ -2,8 +2,7 @@ from pre_process import *
 from get_cuewords import get_cuewords
 from get_train_test_data import get_dataset_for_classifier, get_dataset_for_boundary
 from train_test import TrainAndTest
-from feature_extractor import FEATURE_NAMES
-from draw_result import *
+# from draw_result import *
 from concrete_training_algorithoms import *
 
 
