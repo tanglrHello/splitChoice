@@ -82,7 +82,7 @@ class PostProcessor:
 
     @staticmethod
     def specific_first_word_in_second_part(data):
-        word_list = [u"利于", u"甚至", u"则", u"因此", u"便于", u"表示", u"但是", u"但", u"使", u"导致"]
+        word_list = [u"利于", u"甚至", u"则", u"因此", u"便于", u"表示", u"但是", u"但", u"使", u"导致", u"由于"]
         for word in word_list:
             if data['firstWordInSecondPart'] == word:
                 return "n"

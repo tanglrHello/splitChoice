@@ -10,15 +10,18 @@ def merge_all_papers(ori_data_dir, merged_file_path):
     outfile = open(merged_file_path, "w")
 
     title_flag = False
+    paper_num = 0
 
     for f_name in file_names:
         if f_name.startswith("."):
             continue
 
+        paper_num += 1
+
         infile = open(ori_data_dir+"/"+f_name)
         title = infile.readline()
         if not title_flag:
-            outfile.write("试卷名,"+title)
+            outfile.write("试卷名" + file_splitter + title)
             title_flag = True
 
         for line in infile.readlines():
@@ -27,6 +30,8 @@ def merge_all_papers(ori_data_dir, merged_file_path):
         infile.close()
 
     outfile.close()
+    print "******试卷数******:"
+    print paper_num
 
 
 def filter_split_data(merged_file_path, filtered_file_path):
@@ -37,6 +42,10 @@ def filter_split_data(merged_file_path, filtered_file_path):
 
     # 拆分信息在原文件表格中的列下标
     split_col_index = 3
+    # 题号在原文件表格中的列下标
+    number_col_index = 1
+    # 文本在原文件表格中的列下标
+    text_col_index = 2
 
     all_data_row_num = 0
     split_related_data_row_num = 0
@@ -47,6 +56,12 @@ def filter_split_data(merged_file_path, filtered_file_path):
 
     ori_y_num = 0
     mod_y_num = 0
+
+    one_comma_num = 0
+    more_comma_num = 0
+
+    # number of choice question
+    question_num = 0
 
     title = infile.readline()
     outfile.write(title)
@@ -70,6 +85,13 @@ def filter_split_data(merged_file_path, filtered_file_path):
             print len(line.split(file_splitter))
             print split_col_index
 
+        number = line.split(file_splitter)[number_col_index]
+        if number.endswith("A"):
+            question_num += 1
+
+        text = line.split(file_splitter)[text_col_index]
+        xuanxiang = text.split("\t")[1]
+
         if tag != "None":
             outfile.write(line)
             split_related_data_row_num += 1
@@ -81,6 +103,12 @@ def filter_split_data(merged_file_path, filtered_file_path):
                 last_choice_split_tags.add(tag)
         else:
             none_num += 1
+
+        if tag == 'y' or tag == 'n':
+            if len(xuanxiang.decode("utf-8").split(u"，")) > 2:
+                more_comma_num += 1
+            else:
+                one_comma_num += 1
 
         if tag == "None" or tag == "y" or tag == "n":
             mod, ori = count_mod_ori(last_choice_split_tags)
@@ -97,6 +125,7 @@ def filter_split_data(merged_file_path, filtered_file_path):
 
     print "*****以下统计考虑所有拆分前、拆分后组合的试题文本*****"
     print "所有试题数据的行数\t" + str(all_data_row_num)
+    print "选择题题数\t" + str(question_num)
     print "含拆分信息的数据行数\t" + str(split_related_data_row_num)
     if all_data_row_num != 0:
         print "含拆分信息的数据所占比重\t" + str(split_related_data_row_num / float(all_data_row_num))
@@ -105,6 +134,11 @@ def filter_split_data(merged_file_path, filtered_file_path):
     total_ori_choice_num = none_num + y_num + n_num
     print "*****以下统计考虑所有拆分前的原始试题文本*****"
     print "共有原始选项个数：\t", total_ori_choice_num
+    print "********"
+    print "仅含一个逗号的原始选项文本个数:", one_comma_num
+    print "含一个以上逗号的原始选项文本个数:", more_comma_num
+    print "********"
+
     if total_ori_choice_num != 0:
         print "不含逗号的选项及其所占比例:\t", none_num, float(none_num) / total_ori_choice_num
         print "含逗号但不需拆分的选项及其比例：\t", n_num, float(n_num) / total_ori_choice_num

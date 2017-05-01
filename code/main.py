@@ -10,7 +10,7 @@ from concrete_training_algorithoms import *
 def main():
     data_path = "../data/"
     ori_data_pathname = "11-5"
-    y_prop_in_trainset = 0.4
+    y_prop_in_trainset = False
 
     '''
     results = []
@@ -56,17 +56,17 @@ def main():
     record_file_path = data_path + "auto_records.txt"
 
     maxent_concrete_classifier = MaxentClassifer()
-    adaboost_concrete_classifier = AdaboostClassifer(maxent_concrete_classifier, 10)
+    # adaboost_concrete_classifier = AdaboostClassifer(maxent_concrete_classifier, 10)
 
     my_classifier = TrainAndTest(all_dataset, test_prop, foldnum,
                                  predict_files_dir_path, record_file_path,
-                                 adaboost_concrete_classifier,
+                                 maxent_concrete_classifier,
                                  y_prop_in_trainset)
     my_classifier.train_and_test()
 
 
-    boundary_data_file_path = data_path + "boundary_data.csv"
-    get_dataset_for_boundary(filtered_file_path, boundary_data_file_path)
+    # boundary_data_file_path = data_path + "boundary_data.csv"
+    # get_dataset_for_boundary(filtered_file_path, boundary_data_file_path)
 
 
 def files_init(data_path, ori_data_pathname):
@@ -74,7 +74,7 @@ def files_init(data_path, ori_data_pathname):
     # artificial postag tagging be empty is allowed, but then auto_pos is needed, or the data will be omitted
     ori_data_dir = data_path + ori_data_pathname
     merged_file_path = data_path + "merged_" + ori_data_pathname + ".data"
-    merge_all_papers(ori_data_dir, merged_file_path)
+    # merge_all_papers(ori_data_dir, merged_file_path)
 
     filtered_file_path = data_path + "filtered_" + ori_data_pathname + ".data"
     filter_split_data(merged_file_path, filtered_file_path)

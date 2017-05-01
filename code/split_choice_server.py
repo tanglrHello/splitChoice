@@ -5,6 +5,7 @@ from main import files_init
 from get_train_test_data import SingleData, get_featured_data_for_classify
 from get_train_test_data import get_dataset_for_classifier, construct_y_prop_dataset
 from concrete_training_algorithoms import *
+from post_process import *
 
 app = Bottle()
 DATA_PATH = "../data/"
@@ -12,17 +13,10 @@ ORI_DATA_PATHNAME = "11-5"
 CUEWORD_DICT = files_init(DATA_PATH, ORI_DATA_PATHNAME)
 CLASSIFIER = None
 
+
 @app.get("/test.html")
 def test():
     return "hello"
-
-
-@app.post("/testpost.html")
-def testpost():
-    data = request.forms
-    print data.get("key","no_key")
-    print data.get("v", "no_v")
-    return data.get("key","no_key")
 
 
 @app.post("/simple_split.html")
@@ -43,7 +37,7 @@ def simple_split():
 
     # predict for each pair of comma split part
     results = []
-    comma_pos = [] # store the position of commas
+    comma_pos = []   # store the position of commas
     for index, word in enumerate(xuanxiang):
         if word == u"，":
             comma_pos.append(index + len(timian))
@@ -56,12 +50,12 @@ def simple_split():
 
     for i in range(len(part_boundaries) - 2):
         for j in range(i + 1, len(part_boundaries) - 1):
-            tmp_xuanxiang = all_words[part_boundaries[i] + 1 : part_boundaries[i + 1]] + [u"，"]\
-                        + all_words[part_boundaries[j] + 1 : part_boundaries[j + 1]] + [u"。"]
-            tmp_pos = pos[:len(timian)] + pos[part_boundaries[i] + 1 : part_boundaries[i + 1]] + ["PU"]\
-                        + pos[part_boundaries[j] + 1 : part_boundaries[j + 1]] + ["PU"]
-            tmp_ner = ner[:len(timian)] + ner[part_boundaries[i] + 1 : part_boundaries[i + 1]] + ["O"]\
-                        + ner[part_boundaries[j] + 1 : part_boundaries[j + 1]] + ["O"]
+            tmp_xuanxiang = all_words[part_boundaries[i] + 1: part_boundaries[i + 1]] + [u"，"]\
+                            + all_words[part_boundaries[j] + 1: part_boundaries[j + 1]] + [u"。"]
+            tmp_pos = pos[:len(timian)] + pos[part_boundaries[i] + 1: part_boundaries[i + 1]] + ["PU"]\
+                      + pos[part_boundaries[j] + 1: part_boundaries[j + 1]] + ["PU"]
+            tmp_ner = ner[:len(timian)] + ner[part_boundaries[i] + 1: part_boundaries[i + 1]] + ["O"]\
+                      + ner[part_boundaries[j] + 1: part_boundaries[j + 1]] + ["O"]
 
             text_info = dict()
             text_info['splitinfo'] = None
@@ -76,11 +70,13 @@ def simple_split():
 
             global CUEWORD_DICT
             single_data = get_featured_data_for_classify(CUEWORD_DICT, text_info)
-            results.append(test(single_data))
+            results.append(test_data(single_data))
 
     # generate final prediction
     statistic = Counter(results)
+    print statistic
     return statistic.most_common(1)[0][0]
+
 
 def train():
     global CUEWORD_DICT
@@ -97,7 +93,7 @@ def train():
                                              classify_data_file_path,
                                              force_generate_flag=True)
 
-    train_data_dict= construct_y_prop_dataset(all_dataset, y_prop_in_trainset)
+    train_data_dict = construct_y_prop_dataset(all_dataset, y_prop_in_trainset)
     train_data = train_data_dict['n'] + train_data_dict['y']
     real_train_data = [single_data.data_for_train_test for single_data in train_data]
 
@@ -105,12 +101,15 @@ def train():
     CLASSIFIER.train(real_train_data)
 
 
-def test(single_data):
-    test_data = single_data.data_for_train_test
+def test_data(single_data):
+    data = single_data.data_for_train_test
     global CLASSIFIER
-    return CLASSIFIER.single_test(test_data)
+    predict_res = CLASSIFIER.single_test(data)
+    post_processor = PostProcessor()
+    post_predict_result = post_processor.post_process([single_data], [single_data.ori_text], [predict_res])
+    return post_predict_result[0]
 
 
 if __name__ == "__main__":
     train()
-    run(app, host='172.28.61.247', port=8080)
+    run(app, host='10.0.2.11', port=8080)

@@ -138,7 +138,7 @@ def generate_dataset_for_classifier_in_file(cueword_dict, filtered_file_path, cl
 def modify_data_without_postag_tagging(text_info):
     if text_info["posres"] == "":
         if text_info["auto_pos"] == "":
-            print text_info['source']
+            print "No pos_info", text_info['source']
             return False
         else:
             text_info['posres'] = text_info['auto_pos']
