@@ -2,9 +2,10 @@
 import requests
 
 def test():
-    segged_sentence = u"图5 中 图例 甲 、 乙 的 岩石 类型 分别 是\t沉积岩 ， 变质岩 。"
-    pos = "NN LC NN NN PU NN DEG NN NN AD VC NN PU NN PU"
-    ner = "0 0 0 0 0 0 0 term term 0 0 term 0 term 0"
+
+    segged_sentence = u"仅 考虑 地球运动 ， 图示 窗户 、 屋檐 的 搭建 对 室内 光热 的 影响 有	春分 到 夏至 ， 正午 屋檐 的 遮阳 作用 逐渐 增强 。"
+    pos = "AD VV NN PU JJ NN PU NN DEG NN P NN NN DEG NN VE NN VV NN PU NN NN DEG NN NN AD VV PU"
+    ner = "0 term 0 0 0 term 0 0 0 0 0 term 0 0 term 0 time time time 0 term 0 0 0 term term term 0"
     parameter = {"segged_sentence": segged_sentence, "pos": pos, "ner": ner}
 
     r = requests.post("http://10.0.2.11:8080/simple_split.html", data=parameter)

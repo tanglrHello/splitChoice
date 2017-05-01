@@ -82,7 +82,7 @@ class TrainAndTest:
             predict_prob_results = self.concrete_classifier.batch_test_with_prob(test_data)
             predict_results = [res[0] for res in predict_prob_results]
 
-            post_predict_results = self.post_processor.post_process(test_set, test_text, predict_results)
+            post_predict_results = self.post_processor.post_process(test_set, predict_results)
 
             self.save_predict_detail(test_text, test_data, predict_prob_results, post_predict_results, i)
             self.record_and_show_performance(test_data, post_predict_results)

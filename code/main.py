@@ -10,7 +10,7 @@ from concrete_training_algorithoms import *
 def main():
     data_path = "../data/"
     ori_data_pathname = "11-5"
-    y_prop_in_trainset = False
+    y_prop_in_trainset = 0.4
 
     '''
     results = []

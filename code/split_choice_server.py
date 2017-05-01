@@ -106,7 +106,7 @@ def test_data(single_data):
     global CLASSIFIER
     predict_res = CLASSIFIER.single_test(data)
     post_processor = PostProcessor()
-    post_predict_result = post_processor.post_process([single_data], [single_data.ori_text], [predict_res])
+    post_predict_result = post_processor.post_process([single_data], [predict_res])
     return post_predict_result[0]
 
 

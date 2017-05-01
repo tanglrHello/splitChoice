@@ -1,7 +1,7 @@
 # coding=utf-8
 
 FEATURE_NAMES = ['wordNumDiff',  # 1-拆分成的两部分各自词数差的绝对值
-                 #'charNumDiff',  # 2-拆分成的两部分各自字数差的绝对值
+                 'charNumDiff',  # 2-拆分成的两部分各自字数差的绝对值
                  'postagEditDistance',  # 3-拆分成的两部分的词性序列的编辑距离
                  'lastPosComb',  # 4-拆分后两部分的最后一个词的词性组合
                  'lastPosEqual',  # 5-拆分后两部分的最后一个词的词性是否相同
@@ -14,7 +14,7 @@ FEATURE_NAMES = ['wordNumDiff',  # 1-拆分成的两部分各自词数差的绝�
                  #'firstWordInSecondPart',  # 12-拆分后第二个部份的第一个词
                  #'firstPostagInSecondPart',  # 13-
                  #'lastWordInFirstPart',  # 14-
-                 'lastCharInFirstPart',  # 15-第一部分的最后一个字
+                 #'lastCharInFirstPart',  # 15-第一部分的最后一个字
                  #'containCuewordsComb',  # 16-
                  #"containCuewordsMain",  # 17-是否包含主要线索词
                  #'bothContainLonLat'  # 18-拆分后两部分是否都包含经纬度

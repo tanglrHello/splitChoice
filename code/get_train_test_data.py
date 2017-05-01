@@ -6,10 +6,13 @@ from feature_extractor import *
 
 
 class SingleData:
-    def __init__(self, full_feature_vec, filtered_feature_vec, label, ori_text):
+    def __init__(self, full_feature_vec, filtered_feature_vec, label, ori_text, seg, goldtimes, postag):
         self.data_for_train_test = (filtered_feature_vec, label)
         self.full_feature_vec = full_feature_vec
         self.ori_text = ori_text
+        self.seg = seg
+        self.goldtimes = goldtimes
+        self.postag = postag
 
 
 # -暂时只考虑拆分成两部分的句子
@@ -160,6 +163,7 @@ def get_featured_data_for_classify(cueword_dict, text_info):
     xuanxiang_text = timian_xuanxiang[1]
 
     seg = text_info['segres'].split()
+    goldtimes = text_info['goldtimes'].split()
     postag = text_info['posres'].split()
 
     for i in range(len(seg)):
@@ -218,7 +222,7 @@ def get_featured_data_for_classify(cueword_dict, text_info):
     feature_vector['bothContainLonLat'] = fe.both_contain_lonlat(seg_parts)
 
     filtered_feature_vector = filter_features(feature_vector)
-    data = SingleData(feature_vector, filtered_feature_vector, label, text_info['text'])
+    data = SingleData(feature_vector, filtered_feature_vector, label, text_info['text'], seg, goldtimes, postag)
 
     return data
 
