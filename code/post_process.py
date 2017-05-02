@@ -155,12 +155,9 @@ class PostProcessor:
 
     @staticmethod
     def all_time_in_first_part(data):
-        print "??"
         seg = data.seg
         text = data.ori_text
         goldtimes = data.goldtimes
-        print "/".join(seg)
-        print goldtimes
 
         timian = text.split('\t')[0]
         for i in range(1, len(seg)):
@@ -169,8 +166,6 @@ class PostProcessor:
                 break
         else:
             assert False
-
-        print first_choice_word_index
 
         all_time = False
         for i in range(first_choice_word_index, len(seg)):
